@@ -1,13 +1,16 @@
+from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from django.db import connection
-from django.contrib.auth import get_user_model
+from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
+
+from api.models import User
+from api.serializers import UserSerializer, BookSerializer
 
 
 class LoginView(APIView):
+    # serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
         """
@@ -66,3 +69,38 @@ class LoginView(APIView):
         return Response(
             {'error': 'Invalid Credentials'},
             status=status.HTTP_401_UNAUTHORIZED)
+
+
+class BookListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    # serializer_class = BookSerializer
+
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve a list of all books from the database or an empty list if no books are found.
+
+        Returns:
+            Response: The HTTP response containing the list of books or an empty list.
+        """
+        # Execute the SQL query to retrieve all books
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT id, title, author, genre FROM books')
+            rows = cursor.fetchall()
+
+        # Check if any books are found
+        if rows:
+            # Create a list of dictionaries containing the book information
+            books = [
+                {'id': row[0], 'title': row[1],
+                    'author': row[2], 'genre': row[3]}
+                for row in rows
+            ]
+        else:
+            # Return an empty list if no books are found
+            books = []
+
+        # Return the list of books as a JSON response
+        return Response(
+            books,  # The data to be serialized into JSON
+            status=status.HTTP_200_OK  # The HTTP status code
+        )
