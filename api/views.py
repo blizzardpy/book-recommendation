@@ -104,3 +104,42 @@ class BookListView(generics.ListAPIView):
             books,  # The data to be serialized into JSON
             status=status.HTTP_200_OK  # The HTTP status code
         )
+
+
+class BooksListByGenreView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    # serializer_class = BookSerializer
+
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve a list of all books from the database that match the specified genre.
+
+        Returns:
+            Response: The HTTP response containing the list of books or an empty list.
+        """
+        # Get the genre from the request
+        genre = request.query_params.get('genre')
+
+        # Execute the SQL query to retrieve all books with the specified genre
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'SELECT id, title, author, genre FROM books WHERE genre = %s', [genre])
+            rows = cursor.fetchall()
+
+        # Check if any books are found
+        if rows:
+            # Create a list of dictionaries containing the book information
+            books = [
+                {'id': row[0], 'title': row[1],
+                    'author': row[2], 'genre': row[3]}
+                for row in rows
+            ]
+        else:
+            # Return an empty list if no books are found
+            books = []
+
+        # Return the list of books as a JSON response
+        return Response(
+            books,  # The data to be serialized into JSON
+            status=status.HTTP_200_OK  # The HTTP status code
+        )
