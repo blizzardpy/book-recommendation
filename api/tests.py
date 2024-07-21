@@ -31,15 +31,6 @@ class LoginViewTestCase(TestCase):
                 INSERT INTO users (username, password) VALUES (%s, %s)
             ''', ['testuser', 'testpassword'])
 
-    def tearDown(self):
-        """
-        Clean up the database by dropping the 'users' table.
-        """
-        # Raw SQL for dropping the 'users' table
-        with connection.cursor() as cursor:
-            # Drop the 'users' table if it exists
-            cursor.execute('DROP TABLE IF EXISTS users;')
-
     def test_valid_credentials(self):
         """
         Test the LoginView with valid credentials.
