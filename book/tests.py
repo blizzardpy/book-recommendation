@@ -4,7 +4,7 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.test import force_authenticate
 from rest_framework import status
 
-from auth.models import User
+from authentication.models import User
 from book.views import BookListView, BooksListByGenreView
 
 

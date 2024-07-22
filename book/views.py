@@ -64,7 +64,6 @@ class BooksListByGenreView(generics.ListAPIView):
         """
         # Get the genre from the request
         genre = request.GET.get('genre', None)
-        print(genre)
 
         if not genre:
             # Return an empty list if no genre is provided
