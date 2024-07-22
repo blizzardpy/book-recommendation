@@ -55,7 +55,7 @@ class BookListViewTestCase(TestCase):
         Test that an unauthenticated request to the BookListView returns
         a 401 Unauthorized response.
         """
-        request = self.factory.get('/book/list')
+        request = self.factory.get('/api/book/list')
         response = self.view(request)
 
         # Assert that the HTTP status code is 401 Unauthorized
@@ -69,7 +69,7 @@ class BookListViewTestCase(TestCase):
         containing a list of all books from the database, if any are found.
 
         """
-        request = self.factory.get('/book/list')
+        request = self.factory.get('/api/book/list')
         force_authenticate(request, user=self.user)
         response = self.view(request)
 
@@ -102,7 +102,7 @@ class BookListViewTestCase(TestCase):
             ''')
 
         # Make the request to the BookListView
-        request = self.factory.get('/book/list')
+        request = self.factory.get('/api/book/list')
         force_authenticate(request, user=self.user)
         response = self.view(request)
 

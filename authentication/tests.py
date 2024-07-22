@@ -43,7 +43,7 @@ class LoginViewTestCase(TestCase):
         """
         # Create a POST request with valid credentials
         request = self.factory.post(
-            '/login/', {'username': 'testuser', 'password': 'testpassword'})
+            '/api/login/', {'username': 'testuser', 'password': 'testpassword'})
 
         # Send the request to the LoginView
         response = self.view(request)
@@ -81,7 +81,7 @@ class LoginViewTestCase(TestCase):
         are required.
         """
         # Create a POST request with missing credentials
-        request = self.factory.post('/login/', {'username': 'testuser'})
+        request = self.factory.post('/api/login/', {'username': 'testuser'})
 
         # Send the request to the LoginView
         response = self.view(request)
@@ -110,7 +110,7 @@ class LoginViewTestCase(TestCase):
         """
         # Create a POST request with invalid credentials
         request = self.factory.post(
-            '/login/', {'username': 'testuser', 'password': 'invalidpassword'})
+            '/api/login/', {'username': 'testuser', 'password': 'invalidpassword'})
 
         # Send the request to the LoginView
         response = self.view(request)
