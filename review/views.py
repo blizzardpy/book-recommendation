@@ -74,3 +74,26 @@ class UpdateReviewView(generics.UpdateAPIView):
             if not row:
                 raise Http404("Review not found.")
             return Review(id=row[0], rating=row[1], book_id=row[2], user_id=row[3])
+
+
+class DestroyReviewView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReviewSerializer
+    lookup_field = 'id'
+
+    def get_object(self):
+        review_id = self.kwargs.get('id')
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT id, rating, book_id, user_id
+                FROM reviews
+                WHERE id = %s
+                FOR UPDATE OF reviews;
+                """,
+                [review_id]
+            )
+            row = cursor.fetchone()
+            if not row:
+                raise Http404("Review not found.")
+            return Review(id=row[0], rating=row[1], book_id=row[2], user_id=row[3])
