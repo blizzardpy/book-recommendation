@@ -71,7 +71,7 @@ class CreateReviewViewTestCase(TestCase):
             # The URL to the view under test
             '/api/review/add/',
             # The data to be sent in the request
-            {'rating': 4, 'book': self.book_id})
+            {'rating': 4, 'book_id': self.book_id})
 
         # Force authenticate the request with the user
         force_authenticate(request, user=self.user)
@@ -83,8 +83,16 @@ class CreateReviewViewTestCase(TestCase):
         expected_review = {
             'id': 2,
             'rating': 4,
-            'book': self.book_id,
-            'user': self.user.id
+            'book': {
+                'id': self.book_id,
+                'title': 'Test Title',
+                'author': 'Test Author',
+                'genre': 'Test Genre'
+            },
+            'user': {
+                'id': self.user.id,
+                'username': 'testuser'
+            }
         }
 
         # Verify the response data contains the expected review
@@ -113,7 +121,7 @@ class CreateReviewViewTestCase(TestCase):
         """
         # Create an invalid review request
         request = self.factory.post(
-            '/api/review/add/', {'rating': 6, 'book': self.book_id})
+            '/api/review/add/', {'rating': 6, 'book_id': self.book_id})
         # Force authenticate the request with the user
         force_authenticate(request, user=self.user)
         # Process the request using the view under test
@@ -141,7 +149,7 @@ class CreateReviewViewTestCase(TestCase):
             # The URL to the view under test
             '/api/review/add/',
             # The data to be sent in the request
-            {'rating': 3, 'book': self.book_id + 1})
+            {'rating': 3, 'book_id': self.book_id + 1})
 
         # Force authenticate the request with the user
         force_authenticate(request, user=self.user)
@@ -165,7 +173,7 @@ class CreateReviewViewTestCase(TestCase):
         """
         # Create a request to create a review with the same book and user
         request = self.factory.post(
-            '/api/review/', {'rating': 4, 'book': self.book_id})
+            '/api/review/', {'rating': 4, 'book_id': self.book_id})
         force_authenticate(request, user=self.user)
 
         response = self.view(request)
@@ -238,7 +246,7 @@ class UpdateReviewViewTestCase(TestCase):
             # The URL to the view under test
             f'/api/review/update/{self.review_id}/',
             # The data to be sent in the request
-            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+            {'rating': 4, 'book_id': self.book_id, 'review': self.review_id})
 
         # Process the request using the view under test
         response = self.view(request, id=self.review_id)
@@ -262,7 +270,7 @@ class UpdateReviewViewTestCase(TestCase):
             # The URL to the view under test
             f'/api/review/update/{self.review_id}/',
             # The data to be sent in the request
-            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+            {'rating': 4, 'book_id': self.book_id, 'review': self.review_id})
 
         # Force authenticate the request with the user
         force_authenticate(request, user=self.user)
@@ -274,8 +282,16 @@ class UpdateReviewViewTestCase(TestCase):
         expected_review = {
             'id': self.review_id,
             'rating': 4,
-            'book': self.book_id,
-            'user': self.user.id
+            'book': {
+                'id': self.book_id,
+                'title': 'Test Title',
+                'author': 'Test Author',
+                'genre': 'Test Genre'
+            },
+            'user': {
+                'id': self.user.id,
+                'username': 'testuser'
+            }
         }
 
         self.assertEqual(
@@ -301,7 +317,7 @@ class UpdateReviewViewTestCase(TestCase):
             # The URL to the view under test
             f'/api/review/update/{self.review_id}/',
             # The data to be sent in the request
-            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+            {'rating': 4, 'book_id': self.book_id, 'review': self.review_id})
 
         # Force authenticate the request with the user
         force_authenticate(request, user=self.user)

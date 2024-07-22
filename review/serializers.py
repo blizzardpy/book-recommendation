@@ -8,14 +8,13 @@ from book.serializers import BookSerializer
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    book_id = serializers.IntegerField(validators=[MinValueValidator(1)])
+    book_id = serializers.IntegerField(validators=[MinValueValidator(1)], write_only=True)
     rating = serializers.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)])
     user = serializers.SerializerMethodField()
     book = serializers.SerializerMethodField()
 
     def get_book(self, obj):
-        print("Book", obj.book)
         return BookSerializer(obj.book).data
 
     def get_user(self, obj):

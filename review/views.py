@@ -97,3 +97,33 @@ class DestroyReviewView(generics.DestroyAPIView):
             if not row:
                 raise Http404("Review not found.")
             return Review(id=row[0], rating=row[1], book_id=row[2], user_id=row[3])
+
+
+class UserReviewsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        """
+        Get a list of all reviews created by the authenticated user.
+
+        Returns:
+            QuerySet: A queryset of Review objects.
+        """
+        # Get the user id from the request
+        user_id = self.request.user.id
+
+        # Execute a SQL query to retrieve all reviews created by the user
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT id, rating, book_id, user_id
+                FROM reviews
+                WHERE user_id = %s
+                """,
+                [user_id]
+            )
+            rows = cursor.fetchall()
+
+        # Create a list of Review objects from the fetched rows
+        return [Review(id=row[0], rating=row[1], book_id=row[2], user_id=row[3]) for row in rows]

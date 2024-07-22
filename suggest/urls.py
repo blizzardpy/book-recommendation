@@ -1,6 +1,6 @@
 from django.urls import path
-from authentication.urls import urlpatterns
+from suggest.views import SuggestBookView
 
 urlpatterns = [
-
+    path('', SuggestBookView.as_view(), name='suggest_book'),
 ]
