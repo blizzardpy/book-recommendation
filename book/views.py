@@ -13,6 +13,13 @@ class BookListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BookSerializer
 
+    """
+    View to retrieve a list of all books from the database or an empty list if no books are found.
+
+    Returns:
+        Response: The HTTP response containing the list of books or an empty list.
+    """
+
     def get(self, request, *args, **kwargs):
         """
         Retrieve a list of all books from the database or an empty list if no books are found.
@@ -45,6 +52,13 @@ class BookListView(generics.ListAPIView):
 class BooksListByGenreView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BookSerializer
+
+    """
+    Retrieve a list of all books from the database that match the specified genre.
+
+    Returns:
+        Response: The HTTP response containing the list of books or an empty list.
+    """
 
     genre_param_config = openapi.Parameter(
         'genre',
