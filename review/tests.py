@@ -4,11 +4,11 @@ from rest_framework.test import APIRequestFactory
 from django.db import connection
 from rest_framework.test import force_authenticate
 
-from review.views import CreateReviewView
+from review.views import CreateReviewView, UpdateReviewView, DestroyReviewView
 from authentication.models import User
 
 
-class TestCreateReviewView(TestCase):
+class CreateReviewViewTestCase(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
@@ -47,7 +47,7 @@ class TestCreateReviewView(TestCase):
         """
 
         # Create an unauthenticated request to the review endpoint
-        request = self.factory.get('/api/review/')
+        request = self.factory.get('/api/review/add/')
 
         # Process the request using the view under test
         response = self.view(request)
@@ -69,7 +69,7 @@ class TestCreateReviewView(TestCase):
         # Create a valid review request
         request = self.factory.post(
             # The URL to the view under test
-            '/api/review/',
+            '/api/review/add/',
             # The data to be sent in the request
             {'rating': 4, 'book': self.book_id})
 
@@ -113,7 +113,7 @@ class TestCreateReviewView(TestCase):
         """
         # Create an invalid review request
         request = self.factory.post(
-            '/api/review/', {'rating': 6, 'book': self.book_id})
+            '/api/review/add/', {'rating': 6, 'book': self.book_id})
         # Force authenticate the request with the user
         force_authenticate(request, user=self.user)
         # Process the request using the view under test
@@ -139,7 +139,7 @@ class TestCreateReviewView(TestCase):
         # Create an invalid review request
         request = self.factory.post(
             # The URL to the view under test
-            '/api/review/',
+            '/api/review/add/',
             # The data to be sent in the request
             {'rating': 3, 'book': self.book_id + 1})
 
@@ -182,3 +182,269 @@ class TestCreateReviewView(TestCase):
             status.HTTP_400_BAD_REQUEST,
             # The message if the assertion fails
             "Expected status code 400, received %s" % response.status_code)
+
+
+class UpdateReviewViewTestCase(TestCase):
+
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.view = UpdateReviewView.as_view()
+        # Insert a user into the 'users' table using raw SQL
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO users (username, password) VALUES (%s, %s)
+            ''', ['testuser', 'testpassword'])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT id FROM users WHERE username = %s
+            ''', ['testuser'])
+            self.user = User(id=cursor.fetchone()[0])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO books (title, author, genre) VALUES (%s, %s, %s)
+            ''', ['Test Title', 'Test Author', 'Test Genre'])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT id FROM books WHERE title = %s
+            ''', ['Test Title'])
+            self.book_id = cursor.fetchone()[0]
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO reviews (rating, book_id, user_id) VALUES (%s, %s, %s)
+            ''', [3, self.book_id, self.user.id])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT id FROM reviews WHERE rating = %s AND book_id = %s AND user_id = %s
+            ''', [3, self.book_id, self.user.id])
+            self.review_id = cursor.fetchone()[0]
+
+    def test_unauthenticated_request_update(self):
+        """
+        Test to ensure an unauthenticated request is appropriately rejected.
+
+        This method tests the application's behavior when an unauthenticated
+        request is made to a protected view. It verifies that the response
+        is a 401 Unauthorized, indicating that the request was correctly
+        identified as unauthenticated and thus not allowed to proceed.
+        """
+
+        # Create an unauthenticated request to the review endpoint
+        request = self.factory.put(
+            # The URL to the view under test
+            f'/api/review/update/{self.review_id}/',
+            # The data to be sent in the request
+            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+
+        # Process the request using the view under test
+        response = self.view(request, id=self.review_id)
+
+        # Verify the response has a status code of 401, indicating unauthorized access
+        self.assertEqual(
+            response.status_code, status.HTTP_401_UNAUTHORIZED,
+            "Expected status code 401, received %s" % response.status_code)
+
+    def test_update_review_success(self):
+        """
+        Test to ensure a review can be successfully updated.
+
+        This method tests the application's behavior when a valid review
+        request is made to the view. It verifies that the response is a
+        200 OK, indicating that the review was successfully updated.
+        """
+
+        # Create a valid review request
+        request = self.factory.put(
+            # The URL to the view under test
+            f'/api/review/update/{self.review_id}/',
+            # The data to be sent in the request
+            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+
+        # Force authenticate the request with the user
+        force_authenticate(request, user=self.user)
+
+        # Process the request using the view under test
+        response = self.view(request, id=self.review_id)
+
+        # The expected review object returned by the view
+        expected_review = {
+            'id': self.review_id,
+            'rating': 4,
+            'book': self.book_id,
+            'user': self.user.id
+        }
+
+        self.assertEqual(
+            response.data, expected_review,
+            "Expected response data %s, received %s" %
+            (expected_review, response.data))
+
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK,
+            "Expected status code 200, received %s" % response.status_code)
+
+    def test_update_review_not_found(self):
+        """
+        Test to ensure a review can be successfully updated.
+
+        This method tests the application's behavior when a valid review
+        request is made to the view. It verifies that the response is a
+        200 OK, indicating that the review was successfully updated.
+        """
+
+        # Create a valid review request
+        request = self.factory.put(
+            # The URL to the view under test
+            f'/api/review/update/{self.review_id}/',
+            # The data to be sent in the request
+            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+
+        # Force authenticate the request with the user
+        force_authenticate(request, user=self.user)
+
+        # Process the request using the view under test
+        response = self.view(request, id=self.review_id + 1)
+
+        # The expected review object returned by the view
+        expected_review = {
+            "detail": "Review not found."
+        }
+
+        self.assertEqual(
+            response.data, expected_review,
+            "Expected response data %s, received %s" %
+            (expected_review, response.data))
+
+        self.assertEqual(
+            response.status_code, status.HTTP_404_NOT_FOUND,
+            "Expected status code 200, received %s" % response.status_code)
+
+
+class DestroyReviewViewTestCase(TestCase):
+
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.view = DestroyReviewView.as_view()
+        # Insert a user into the 'users' table using raw SQL
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO users (username, password) VALUES (%s, %s)
+            ''', ['testuser', 'testpassword'])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT id FROM users WHERE username = %s
+            ''', ['testuser'])
+            self.user = User(id=cursor.fetchone()[0])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO books (title, author, genre) VALUES (%s, %s, %s)
+            ''', ['Test Title', 'Test Author', 'Test Genre'])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT id FROM books WHERE title = %s
+            ''', ['Test Title'])
+            self.book_id = cursor.fetchone()[0]
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO reviews (rating, book_id, user_id) VALUES (%s, %s, %s)
+            ''', [3, self.book_id, self.user.id])
+
+        with connection.cursor() as cursor:
+            cursor.execute('''
+                SELECT id FROM reviews WHERE rating = %s AND book_id = %s AND user_id = %s
+            ''', [3, self.book_id, self.user.id])
+            self.review_id = cursor.fetchone()[0]
+
+    def test_unauthenticated_request_destroy_review(self):
+        """
+        Test that an unauthenticated request to the destroy review endpoint returns a 401 Unauthorized response.
+        """
+
+        # Create an unauthenticated request to the review endpoint
+        request = self.factory.put(
+            # The URL to the view under test
+            f'/api/review/delete/{self.review_id}/',
+            # The data to be sent in the request
+            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+
+        # Process the request using the view under test
+        response = self.view(request, id=self.review_id)
+
+        # Verify the response has a status code of 401, indicating unauthorized access
+        self.assertEqual(
+            response.status_code, status.HTTP_401_UNAUTHORIZED,
+            # The message if the assertion fails
+            "Expected status code 401, received %s" % response.status_code)
+
+    def test_destroy_review_success(self):
+        """
+        Test to ensure a review is successfully deleted.
+
+        This method tests the application's behavior when a valid review
+        request is made to the destroy endpoint. It verifies that the
+        response is a 204 No Content, indicating that the review was
+        successfully deleted.
+        """
+
+        # Create a valid review request
+        request = self.factory.delete(
+            # The URL to the view under test
+            f'/api/review/delete/{self.review_id}/',
+            # The data to be sent in the request
+            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+
+        # Force authenticate the request with the user
+        force_authenticate(request, user=self.user)
+
+        # Process the request using the view under test
+        response = self.view(request, id=self.review_id)
+
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT,
+            "Expected status code 200, received %s" % response.status_code)
+
+    def test_destroy_review_not_found(self):
+        """
+        Test to ensure a review not found returns a 404 Not Found response.
+
+        This method tests the application's behavior when a request to delete a
+        non-existent review is made to the destroy endpoint. It verifies that the
+        response is a 404 Not Found, indicating that the review was not found.
+        """
+
+        # Create a valid review request
+        request = self.factory.delete(
+            # The URL to the view under test
+            f'/api/review/delete/{self.review_id}/',
+            # The data to be sent in the request
+            {'rating': 4, 'book': self.book_id, 'review': self.review_id})
+
+        # Force authenticate the request with the user
+        force_authenticate(request, user=self.user)
+
+        # Process the request using the view under test
+        response = self.view(request, id=self.review_id + 1)
+
+        # The expected review object returned by the view
+        expected_review = {
+            "detail": "Review not found."
+        }
+
+        # Verify the response data contains the expected error message
+        self.assertEqual(
+            response.data, expected_review,
+            "Expected response data %s, received %s" %
+            (expected_review, response.data))
+
+        # Verify the response has a status code of 404 Not Found
+        self.assertEqual(
+            response.status_code, status.HTTP_404_NOT_FOUND,
+            "Expected status code 404, received %s" % response.status_code)

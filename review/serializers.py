@@ -56,22 +56,23 @@ class ReviewSerializer(serializers.ModelSerializer):
         # Add current user id to data
         data['user_id'] = self.context['request'].user.id
 
-        # Check if the user has already reviewed the book
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT COUNT(*)
-                FROM reviews
-                WHERE book_id = %s
-                AND user_id = %s
-                """,
-                (data['book_id'], data['user_id'])
-            )
-            count = cursor.fetchone()[0]
-            if count > 0:
-                # If the user has already reviewed the book, raise an error
-                raise serializers.ValidationError(
-                    'User has already reviewed this book')
+        if self.context['request'].method == 'POST':
+            # Check if the user has already reviewed the book
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM reviews
+                    WHERE book_id = %s
+                    AND user_id = %s
+                    """,
+                    (data['book_id'], data['user_id'])
+                )
+                count = cursor.fetchone()[0]
+                if count > 0:
+                    # If the user has already reviewed the book, raise an error
+                    raise serializers.ValidationError(
+                        'User has already reviewed this book')
 
         # Return validated data
         return data
