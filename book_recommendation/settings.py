@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'authentication.apps.AuthenticationConfig',
     'book.apps.BookConfig',
     'review.apps.ReviewConfig',
+    'suggest.apps.SuggestConfig',
 ]
 
 # define custom user model

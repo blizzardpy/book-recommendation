@@ -6,6 +6,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from book.serializers import BookSerializer
+from book.models import Book
 
 
 class BookListView(generics.ListAPIView):
@@ -28,19 +29,17 @@ class BookListView(generics.ListAPIView):
         if rows:
             # Create a list of dictionaries containing the book information
             books = [
-                {'id': row[0], 'title': row[1],
-                    'author': row[2], 'genre': row[3]}
+                Book(id=row[0], title=row[1], author=row[2], genre=row[3])
                 for row in rows
             ]
         else:
             # Return an empty list if no books are found
             books = []
 
+        serializer = BookSerializer(books, many=True)
+
         # Return the list of books as a JSON response
-        return Response(
-            books,  # The data to be serialized into JSON
-            status=status.HTTP_200_OK  # The HTTP status code
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BooksListByGenreView(generics.ListAPIView):
@@ -79,16 +78,14 @@ class BooksListByGenreView(generics.ListAPIView):
         if rows:
             # Create a list of dictionaries containing the book information
             books = [
-                {'id': row[0], 'title': row[1],
-                    'author': row[2], 'genre': row[3]}
+                Book(id=row[0], title=row[1], author=row[2], genre=row[3])
                 for row in rows
             ]
         else:
             # Return an empty list if no books are found
             books = []
 
+        serializer = BookSerializer(books, many=True)
+
         # Return the list of books as a JSON response
-        return Response(
-            books,  # The data to be serialized into JSON
-            status=status.HTTP_200_OK  # The HTTP status code
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)

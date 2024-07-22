@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/login/', include('authentication.urls')),
     path('api/book/', include('book.urls')),
     path('api/review/', include('review.urls')),
+    path('api/suggest/', include('suggest.urls')),
 
     # Swagger
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0),
