@@ -4,11 +4,11 @@ from rest_framework import status, generics
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentication.models import User
-from authentication.serializers import UserSerializer
+from authentication.serializers import LoginSerializer
 
 
 class LoginView(generics.CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
         """

@@ -2,22 +2,30 @@ from rest_framework import serializers
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import connection
 
-from authentication.models import User
+from authentication.serializers import UserSerializer
 from review.models import Review
-from book.models import Book
+from book.serializers import BookSerializer
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    book = serializers.IntegerField(
-        source='book_id', validators=[MinValueValidator(1)])
+    book_id = serializers.IntegerField(validators=[MinValueValidator(1)])
     rating = serializers.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)])
+    user = serializers.SerializerMethodField()
+    book = serializers.SerializerMethodField()
+
+    def get_book(self, obj):
+        print("Book", obj.book)
+        return BookSerializer(obj.book).data
+
+    def get_user(self, obj):
+        return UserSerializer(obj.user).data
 
     class Meta:
         model = Review
-        fields = ['id', 'rating', 'book', 'user']
+        fields = ['id', 'rating', 'book', 'user', 'book_id']
         extra_kwargs = {
-            'book': {'write_only': True},
+            'book_id': {'write_only': True},
             'user': {'read_only': True},
         }
 
