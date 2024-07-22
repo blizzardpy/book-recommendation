@@ -8,7 +8,8 @@ from book.serializers import BookSerializer
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    book_id = serializers.IntegerField(validators=[MinValueValidator(1)], write_only=True)
+    book_id = serializers.IntegerField(
+        validators=[MinValueValidator(1)], write_only=True)
     rating = serializers.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)])
     user = serializers.SerializerMethodField()
@@ -113,3 +114,23 @@ class ReviewSerializer(serializers.ModelSerializer):
             row = cursor.fetchone()
             # Create a new Review object with the fetched data
             return Review(id=row[0], rating=row[1], book_id=row[2], user_id=row[3])
+
+
+class UpdateReviewSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)])
+    user = serializers.SerializerMethodField()
+    book = serializers.SerializerMethodField()
+
+    def get_book(self, obj):
+        return BookSerializer(obj.book).data
+
+    def get_user(self, obj):
+        return UserSerializer(obj.user).data
+
+    class Meta:
+        model = Review
+        fields = ['id', 'rating', 'book', 'user']
+        extra_kwargs = {
+            'user': {'read_only': True},
+        }

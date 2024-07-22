@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from review.models import Review
-from review.serializers import ReviewSerializer
+from review.serializers import ReviewSerializer, UpdateReviewSerializer
 
 
 class CreateReviewView(generics.CreateAPIView):
@@ -55,7 +55,7 @@ class CreateReviewView(generics.CreateAPIView):
 
 class UpdateReviewView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ReviewSerializer
+    serializer_class = UpdateReviewSerializer
     lookup_field = 'id'
 
     def get_object(self):
