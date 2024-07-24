@@ -73,6 +73,8 @@ class SuggestBookView(generics.ListAPIView):
 
                     else:
                         # Return an error message if no book suggestions are found
-                        return Response({"detail": "No book suggestions available for the preferred genres."}, status=status.HTTP_404_NOT_FOUND)
+                        return Response(
+                            {"detail": "No book suggestions available for the preferred genres."},
+                            status=status.HTTP_404_NOT_FOUND)
             # Return an error message if no preferred genres are found
             return Response({"detail": "No preferred genres found"}, status=status.HTTP_404_NOT_FOUND)
